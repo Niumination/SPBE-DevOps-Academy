@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPBE-DevOps Academy - Platform Pembelajaran Interaktif</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SPBE-DevOps Academy</h1>
+                <p class="nav-subtitle">Diskominfo Kabupaten Aceh Tengah</p>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-link" onclick="app.showView('dashboard')">Dashboard</button>
+                <button class="nav-link" onclick="app.showView('resources')">Resources</button>
+                <button class="nav-link" onclick="app.showView('progress')">Progress</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view active">
+            <div class="hero-section">
+                <h2>Selamat Datang di Platform Pembelajaran Interaktif</h2>
+                <p class="hero-description">Platform pembelajaran untuk PNS Pranata Komputer Terampil (Golongan II/c) dengan dua jalur kurikulum komprehensif</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-content">
+                        <h3 id="stats-modules">0</h3>
+                        <p>Modul Diselesaikan</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3 id="stats-quizzes">0</h3>
+                        <p>Quiz Dikerjakan</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <h3 id="stats-progress">0%</h3>
+                        <p>Progress Keseluruhan</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-content">
+                        <h3 id="stats-badges">0</h3>
+                        <p>Badge Diperoleh</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="curriculum-section">
+                <h3>Pilih Jalur Kurikulum</h3>
+                <div class="curriculum-cards">
+                    <div class="curriculum-card devops" onclick="app.selectCurriculum('devops')">
+                        <div class="curriculum-header">
+                            <span class="curriculum-icon">⚙️</span>
+                            <h4>DevOps Engineer</h4>
+                        </div>
+                        <p class="curriculum-description">Fokus Database SPBE, clustering, dan high availability</p>
+                        <div class="curriculum-meta">
+                            <span>📊 10 Modul</span>
+                            <span>⏱️ 12-21 bulan</span>
+                        </div>
+                        <button class="btn btn--primary btn--full-width">Mulai Pembelajaran</button>
+                    </div>
+
+                    <div class="curriculum-card spbe" onclick="app.selectCurriculum('spbe')">
+                        <div class="curriculum-header">
+                            <span class="curriculum-icon">📈</span>
+                            <h4>Penggiat Penilaian Indeks SPBE</h4>
+                        </div>
+                        <p class="curriculum-description">Fokus audit, mapping, dan peningkatan indeks SPBE</p>
+                        <div class="curriculum-meta">
+                            <span>📊 10 Modul</span>
+                            <span>⏱️ 8-12 bulan</span>
+                        </div>
+                        <button class="btn btn--primary btn--full-width">Mulai Pembelajaran</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-activity" id="recent-activity">
+                <h3>Aktivitas Terakhir</h3>
+                <div class="activity-list">
+                    <p class="no-activity">Belum ada aktivitas. Mulai pembelajaran untuk melihat progress Anda!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Curriculum View -->
+        <div id="curriculum-view" class="view">
+            <div class="view-header">
+                <button class="btn btn--secondary" onclick="app.showView('dashboard')">← Kembali</button>
+                <div>
+                    <h2 id="curriculum-title"></h2>
+                    <p id="curriculum-description"></p>
+                </div>
+            </div>
+
+            <div class="levels-container" id="levels-container">
+                <!-- Levels will be dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Module View -->
+        <div id="module-view" class="view">
+            <div class="view-header">
+                <button class="btn btn--secondary" onclick="app.backToCurriculum()">← Kembali ke Kurikulum</button>
+            </div>
+
+            <div class="module-content">
+                <div class="module-header">
+                    <h2 id="module-title"></h2>
+                    <span id="module-duration" class="duration-badge"></span>
+                </div>
+
+                <div class="module-body">
+                    <div class="module-section">
+                        <h3>📖 Deskripsi</h3>
+                        <p id="module-description"></p>
+                    </div>
+
+                    <div class="module-section">
+                        <h3>🎥 Video Pembelajaran</h3>
+                        <div class="video-placeholder">
+                            <div class="video-icon">▶️</div>
+                            <p>Video pembelajaran untuk modul ini</p>
+                            <p class="video-note">Catatan: Embedded video akan tersedia di versi production</p>
+                        </div>
+                    </div>
+
+                    <div class="module-section">
+                        <h3>🛠️ Tools &amp; Software</h3>
+                        <div id="module-tools" class="tools-list"></div>
+                    </div>
+
+                    <div class="module-section">
+                        <h3>💼 Proyek Implementasi</h3>
+                        <div class="project-box">
+                            <p id="module-project"></p>
+                        </div>
+                    </div>
+
+                    <div class="module-actions">
+                        <button class="btn btn--primary" onclick="app.startQuiz()">🎯 Mulai Quiz</button>
+                        <button class="btn btn--outline" onclick="app.markModuleComplete()">✅ Tandai Selesai</button>
+                    </div>
+
+                    <div class="module-progress">
+                        <p>Progress Modul</p>
+                        <div class="progress-bar">
+                            <div id="module-progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress View -->
+        <div id="progress-view" class="view">
+            <div class="view-header">
+                <h2>Progress &amp; Sertifikasi</h2>
+            </div>
+
+            <div class="progress-summary">
+                <div class="progress-card">
+                    <h3>Kurikulum DevOps Engineer</h3>
+                    <div class="level-progress">
+                        <div class="level-item">
+                            <span>Basic (Operator)</span>
+                            <div class="progress-bar">
+                                <div id="devops-basic-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="devops-basic-percent">0%</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Intermediate (Implementor)</span>
+                            <div class="progress-bar">
+                                <div id="devops-intermediate-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="devops-intermediate-percent">0%</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Advanced/Professional</span>
+                            <div class="progress-bar">
+                                <div id="devops-advanced-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="devops-advanced-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>Kurikulum SPBE</h3>
+                    <div class="level-progress">
+                        <div class="level-item">
+                            <span>Basic (Familiarization)</span>
+                            <div class="progress-bar">
+                                <div id="spbe-basic-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="spbe-basic-percent">0%</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Intermediate (Audit &amp; Mapping)</span>
+                            <div class="progress-bar">
+                                <div id="spbe-intermediate-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="spbe-intermediate-percent">0%</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Advanced/Professional</span>
+                            <div class="progress-bar">
+                                <div id="spbe-advanced-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="spbe-advanced-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="badges-section">
+                <h3>🏆 Badge &amp; Sertifikasi</h3>
+                <div class="badges-grid" id="badges-grid">
+                    <!-- Badges will be dynamically generated -->
+                </div>
+            </div>
+
+            <div class="recommendations-section">
+                <h3>📌 Rekomendasi Modul Berikutnya</h3>
+                <div id="recommendations" class="recommendations-list">
+                    <p>Mulai pembelajaran untuk mendapatkan rekomendasi!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources View -->
+        <div id="resources-view" class="view">
+            <div class="view-header">
+                <h2>📚 Resources Library</h2>
+                <p>Koleksi lengkap tools, dokumentasi, dan referensi pembelajaran</p>
+            </div>
+
+            <div class="resources-grid">
+                <div class="resource-category">
+                    <h3>🗄️ Database Tools</h3>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="https://www.postgresql.org/docs/" target="_blank">
+                                <strong>PostgreSQL Official</strong>
+                                <span class="resource-type">Documentation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.pgadmin.org/" target="_blank">
+                                <strong>pgAdmin</strong>
+                                <span class="resource-type">Tool</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://dbeaver.io/" target="_blank">
+                                <strong>DBeaver</strong>
+                                <span class="resource-type">Tool</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="resource-category">
+                    <h3>⚙️ DevOps Tools</h3>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="https://hub.docker.com/" target="_blank">
+                                <strong>Docker Hub</strong>
+                                <span class="resource-type">Registry</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.jenkins.io/doc/" target="_blank">
+                                <strong>Jenkins Documentation</strong>
+                                <span class="resource-type">Documentation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://kubernetes.io/docs/" target="_blank">
+                                <strong>Kubernetes Docs</strong>
+                                <span class="resource-type">Documentation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://docs.ansible.com/" target="_blank">
+                                <strong>Ansible Documentation</strong>
+                                <span class="resource-type">Documentation</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="resource-category">
+                    <h3>📊 SPBE Reference</h3>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="https://spbe.go.id/" target="_blank">
+                                <strong>Portal SPBE Nasional</strong>
+                                <span class="resource-type">Official</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>Perpres 95/2018</strong>
+                                <span class="resource-type">Regulation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>Roadmap SPBE Nasional</strong>
+                                <span class="resource-type">Documentation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>Permen PANRB 59/2020</strong>
+                                <span class="resource-type">Regulation</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="resource-category">
+                    <h3>📖 Cheat Sheets</h3>
+                    <ul class="resource-list">
+                        <li>
+                            <a href="#">
+                                <strong>Linux Command Cheat Sheet</strong>
+                                <span class="resource-type">Guide</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>Git Commands Cheat Sheet</strong>
+                                <span class="resource-type">Guide</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>PostgreSQL Quick Reference</strong>
+                                <span class="resource-type">Guide</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <strong>Docker Commands Reference</strong>
+                                <span class="resource-type">Guide</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Quiz Pembelajaran</h3>
+                <button class="modal-close" onclick="app.closeQuiz()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="quiz-content">
+                    <!-- Quiz questions will be dynamically generated -->
+                </div>
+                <div id="quiz-result" class="quiz-result hidden">
+                    <h3 id="result-title"></h3>
+                    <p id="result-message"></p>
+                    <div class="result-score">
+                        <span id="result-score"></span>
+                    </div>
+                    <button class="btn btn--primary" onclick="app.closeQuiz()">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Modal -->
+    <div id="certificate-modal" class="modal">
+        <div class="modal-content certificate-content">
+            <button class="modal-close" onclick="app.closeCertificate()">×</button>
+            <div class="certificate">
+                <div class="certificate-border">
+                    <h2>🎓 Sertifikat Penyelesaian</h2>
+                    <p class="certificate-text">Diberikan kepada</p>
+                    <h3 class="certificate-name">PNS Pranata Komputer</h3>
+                    <p class="certificate-text">Telah menyelesaikan</p>
+                    <h4 id="certificate-level" class="certificate-level"></h4>
+                    <p class="certificate-text">Diskominfo Kabupaten Aceh Tengah</p>
+                    <div class="certificate-badge" id="certificate-badge"></div>
+                    <p class="certificate-date" id="certificate-date"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
