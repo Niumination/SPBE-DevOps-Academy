@@ -104,7 +104,7 @@ class CertificateManager {
       certificate_type: certificateType,
       certificate_url: null, // Will be generated
       verification_code: verificationCode,
-      issued_date: new Date().toISOString(),
+      issued_at: new Date().toISOString(),
       metadata: {
         user_name: userProfile?.full_name || this.currentUser.email?.split('@')[0],
         user_nip: userProfile?.nip,
@@ -181,7 +181,7 @@ class CertificateManager {
           .from('certificates')
           .select('*')
           .eq('user_id', this.currentUser.id)
-          .order('issued_date', { ascending: false });
+          .order('issued_at', { ascending: false });
 
         if (result.error) throw result.error;
         certificates = result.data;
@@ -294,7 +294,7 @@ class CertificateManager {
 
                 <div class="certificate-footer">
                   <div class="certificate-date">
-                    <p>Diterbitkan pada: ${new Date(certificate.issued_date).toLocaleDateString('id-ID', {
+                    <p>Diterbitkan pada: ${new Date(certificate.issued_at).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric'
@@ -394,7 +394,7 @@ class CertificateManager {
           <p>Telah menyelesaikan</p>
           <h3>${certificate.metadata?.curriculum_name || 'Program'}</h3>
           <p>${certificate.metadata?.level_name || 'Level'}</p>
-          <p>Diterbitkan pada: ${new Date(certificate.issued_date).toLocaleDateString('id-ID')}</p>
+          <p>Diterbitkan pada: ${new Date(certificate.issued_at).toLocaleDateString('id-ID')}</p>
           <p>Kode Verifikasi: ${certificate.verification_code}</p>
         </div>
       </div>
@@ -500,7 +500,7 @@ class CertificateManager {
           user_name: certificate.users?.full_name,
           curriculum_name: certificate.metadata?.curriculum_name,
           level_name: certificate.metadata?.level_name,
-          issued_date: certificate.issued_date,
+          issued_at: certificate.issued_at,
           verification_code: certificate.verification_code
         }
       };

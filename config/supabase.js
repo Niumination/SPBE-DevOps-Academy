@@ -104,7 +104,7 @@ const DB_SCHEMAS = {
     certificate_type TEXT NOT NULL,
     certificate_url TEXT,
     verification_code TEXT UNIQUE NOT NULL,
-    issued_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    issued_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   `,
   ACTIVITIES: `

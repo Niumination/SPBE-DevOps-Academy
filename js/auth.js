@@ -261,6 +261,7 @@ class AuthManager {
     if (!this.supabase) return;
 
     const profileData = {
+      id: user.id, // Add user ID to match auth.uid()
       email: user.email,
       full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
       nip: user.user_metadata?.nip || '',
@@ -273,7 +274,7 @@ class AuthManager {
     const { data, error } = await this.supabase
       .from('users')
       .upsert(profileData, {
-        onConflict: 'email',
+        onConflict: 'id', // Use ID instead of email
         ignoreDuplicates: false
       })
       .select()
