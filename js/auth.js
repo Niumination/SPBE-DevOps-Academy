@@ -312,7 +312,7 @@ class AuthManager {
 
     try {
       await this.supabase
-        .from('activities')
+        .from('activity_logs')
         .insert({
           user_id: this.currentUser.id,
           activity_type: activityType,

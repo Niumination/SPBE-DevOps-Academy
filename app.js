@@ -582,17 +582,17 @@ const app = {
   updateProfileView() {
     if (!this.currentUser || !this.userProfile) return;
 
-    const profileName = document.getElementById('profile-name');
+    const profileName = document.getElementById('profile-full-name');
     const profileEmail = document.getElementById('profile-email');
     const profileNIP = document.getElementById('profile-nip');
     const profileJabatan = document.getElementById('profile-jabatan');
     const profileUnit = document.getElementById('profile-unit');
 
-    if (profileName) profileName.textContent = this.currentUser.user_metadata?.full_name || 'N/A';
+    if (profileName) profileName.textContent = this.currentUser.user_metadata?.full_name || this.userProfile?.full_name || 'N/A';
     if (profileEmail) profileEmail.textContent = this.currentUser.email || 'N/A';
-    if (profileNIP) profileNIP.textContent = this.userProfile.nip || 'N/A';
-    if (profileJabatan) profileJabatan.textContent = this.userProfile.jabatan || 'N/A';
-    if (profileUnit) profileUnit.textContent = this.userProfile.unit_kerja || 'N/A';
+    if (profileNIP) profileNIP.textContent = this.userProfile?.nip || 'N/A';
+    if (profileJabatan) profileJabatan.textContent = this.userProfile?.jabatan || 'N/A';
+    if (profileUnit) profileUnit.textContent = this.userProfile?.unit_kerja || 'N/A';
 
     // Update certificates in profile
     this.updateProfileCertificates();

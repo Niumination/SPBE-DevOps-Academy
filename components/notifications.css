@@ -135,7 +135,7 @@
 /* Notification Container */
 .notification-container {
   position: fixed;
-  top: var(--space-20);
+  bottom: var(--space-20);
   right: var(--space-20);
   z-index: 9999;
   display: flex;

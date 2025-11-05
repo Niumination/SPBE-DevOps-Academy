@@ -140,6 +140,10 @@ class ProgressManager {
     }
   }
 
+  async getUserProgress() {
+    return await this.getAllProgress();
+  }
+
   async getAllProgress() {
     try {
       if (!this.currentUser) {
