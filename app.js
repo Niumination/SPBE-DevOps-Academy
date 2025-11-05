@@ -1305,7 +1305,16 @@ const app = {
 
     try {
       if (window.authManager) {
-        const result = await window.authManager.signUp(formData);
+        const result = await window.authManager.signUp(
+          formData.email,
+          formData.password,
+          {
+            fullName: formData.fullName,
+            nip: formData.nip,
+            jabatan: formData.jabatan,
+            unitKerja: formData.unitKerja
+          }
+        );
         if (result.success) {
           this.closeAuthModal();
           this.showNotification('Registrasi berhasil! Silakan cek email untuk verifikasi.', 'success');
