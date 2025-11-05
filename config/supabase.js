@@ -3,6 +3,8 @@ const SUPABASE_CONFIG = {
   url: 'https://drilnozmqsrfcshrdyuf.supabase.co',
   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyaWxub3ptcXNyZmNzaHJkeXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzMzczOTgsImV4cCI6MjA3NzkxMzM5OH0.6dtAp4u1rlPGnqU4zrSaLtPufPfmYDzXu4jf2s-ZmM8',
   serviceRoleKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyaWxub3ptcXNyZmNzaHJkeXVmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjMzNzM5OCwiZXhwIjoyMDc3OTEzMzk4fQ.MwDqlrpzx6hYjoCXkx1sPtCgRsOtmIPH9RTZFqyTi14',
+  // Update this to your GitHub Pages URL
+  redirectUrl: 'https://niumination.github.io/SPBE-DevOps-Academy/',
   // For development, you can use these placeholder values
   // In production, these should be set as environment variables
 };

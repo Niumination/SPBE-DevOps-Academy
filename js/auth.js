@@ -116,7 +116,8 @@ class AuthManager {
             nip: userData.nip || '',
             jabatan: userData.jabatan || '',
             unit_kerja: userData.unitKerja || ''
-          }
+          },
+          emailRedirectTo: window.SupabaseConfig.SUPABASE_CONFIG.redirectUrl
         }
       });
 
