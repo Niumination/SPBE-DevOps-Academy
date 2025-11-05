@@ -5,6 +5,7 @@
 - Open browser to `http://localhost:8000`
 - Test with demo account: demo@spbe.academy / demo123
 - No build system, linting, or testing framework (vanilla JS)
+- Single test: Open test-supabase.html in browser after starting server
 
 ## Code Style Guidelines
 
@@ -45,3 +46,5 @@
 - DRY, reusable components with consistent error handling
 - Indonesian localization for all UI text and content
 - Environment variables use VITE_ prefix for Vercel compatibility
+- Use window.SupabaseConfig for Supabase initialization
+- All managers attached to window object for global access
