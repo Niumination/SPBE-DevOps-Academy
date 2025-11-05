@@ -1,0 +1,301 @@
+/* Notification System Styles */
+
+/* Base Notification Styles */
+.notification {
+  position: fixed;
+  top: var(--space-20);
+  right: var(--space-20);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-16) var(--space-20);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 450px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  animation: notificationSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all var(--duration-normal) var(--ease-standard);
+  margin-bottom: var(--space-8);
+}
+
+.notification:hover {
+  transform: translateX(-4px);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Notification Icon */
+.notification-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.notification--success .notification-icon {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.notification--error .notification-icon {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.notification--warning .notification-icon {
+  background-color: var(--color-warning);
+  color: white;
+}
+
+.notification--info .notification-icon {
+  background-color: var(--color-info);
+  color: white;
+}
+
+/* Notification Content */
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  line-height: var(--line-height-tight);
+}
+
+.notification-message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  word-wrap: break-word;
+}
+
+/* Notification Close Button */
+.notification-close {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--space-4);
+  border-radius: var(--radius-base);
+  transition: all var(--duration-fast) var(--ease-standard);
+  opacity: 0;
+}
+
+.notification:hover .notification-close {
+  opacity: 1;
+}
+
+.notification-close:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+/* Notification Progress Bar (for loading notifications) */
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-teal-300));
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  animation: progressShrink 5s linear forwards;
+}
+
+/* Notification Types */
+.notification--success {
+  border-left: 4px solid var(--color-success);
+}
+
+.notification--error {
+  border-left: 4px solid var(--color-error);
+}
+
+.notification--warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.notification--info {
+  border-left: 4px solid var(--color-info);
+}
+
+/* Notification Container */
+.notification-container {
+  position: fixed;
+  top: var(--space-20);
+  right: var(--space-20);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: var(--space-8);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px);
+}
+
+/* Animations */
+@keyframes notificationSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes notificationSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes progressShrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes notificationBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(0);
+  }
+  40% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+}
+
+/* Notification with Action */
+.notification-with-action {
+  padding-bottom: var(--space-24);
+}
+
+.notification-action {
+  margin-top: var(--space-12);
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+.notification-action .btn {
+  padding: var(--space-6) var(--space-12);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+}
+
+/* Stacked Notifications */
+.notification.stacked {
+  transform: translateX(0) scale(0.95);
+  opacity: 0.9;
+}
+
+.notification.stacked:hover {
+  transform: translateX(-4px) scale(1);
+  opacity: 1;
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .notification-container {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  
+  .notification {
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .notification-container {
+    top: var(--space-16);
+    right: var(--space-16);
+    left: var(--space-16);
+    max-height: 50vh;
+  }
+  
+  .notification {
+    min-width: auto;
+    max-width: none;
+    margin-bottom: var(--space-4);
+  }
+  
+  .notification.stacked {
+    transform: scale(0.98);
+  }
+  
+  .notification:hover {
+    transform: translateX(-2px) scale(1);
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .notification {
+    border-width: 2px;
+  }
+  
+  .notification--success {
+    border-color: var(--color-success);
+    background: var(--color-surface);
+  }
+  
+  .notification--error {
+    border-color: var(--color-error);
+    background: var(--color-surface);
+  }
+  
+  .notification--warning {
+    border-color: var(--color-warning);
+    background: var(--color-surface);
+  }
+  
+  .notification--info {
+    border-color: var(--color-info);
+    background: var(--color-surface);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    animation: none;
+    transition: none;
+  }
+  
+  .notification-progress {
+    animation: none;
+  }
+  
+  .notification:hover {
+    transform: none;
+  }
+}

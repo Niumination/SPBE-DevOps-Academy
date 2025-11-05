@@ -1,11 +1,48 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPBE-DevOps Academy - Platform Pembelajaran Interaktif</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SPBE-DevOps Academy - Platform Pembelajaran Interaktif</title>
+        <meta name="description" content="Platform pembelajaran interaktif untuk PNS Pranata Komputer dengan kurikulum DevOps dan SPBE">
+        <meta name="keywords" content="SPBE, DevOps, Pranata Komputer, PNS, Diskominfo, Aceh Tengah">
+        <meta name="author" content="Diskominfo Kabupaten Aceh Tengah">
+        
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="SPBE-DevOps Academy">
+        <meta property="og:description" content="Platform pembelajaran interaktif untuk PNS Pranata Komputer">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="">
+        
+        <!-- Twitter Card Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="SPBE-DevOps Academy">
+        <meta name="twitter:description" content="Platform pembelajaran interaktif untuk PNS Pranata Komputer">
+        <meta name="twitter:image" content="">
+        
+        <!-- Favicon -->
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        
+        <!-- Preconnect to external domains -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://cdn.jsdelivr.net">
+        
+        <!-- Supabase CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        
+        <!-- Chart.js for analytics -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <!-- Font Awesome for icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="components/auth.css">
+        <link rel="stylesheet" href="components/notifications.css">
+        <link rel="stylesheet" href="components/video.css">
+    </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
@@ -18,6 +55,38 @@
                 <button class="nav-link" onclick="app.showView('dashboard')">Dashboard</button>
                 <button class="nav-link" onclick="app.showView('resources')">Resources</button>
                 <button class="nav-link" onclick="app.showView('progress')">Progress</button>
+                <button class="nav-link" onclick="app.showView('certificates')">Sertifikat</button>
+                
+                <!-- Auth Buttons -->
+                <div id="auth-buttons" class="auth-buttons">
+                    <button class="btn btn--outline btn--sm" onclick="app.showLoginModal()">
+                        <i class="fas fa-sign-in-alt"></i> Masuk
+                    </button>
+                    <button class="btn btn--primary btn--sm" onclick="app.showRegisterModal()">
+                        <i class="fas fa-user-plus"></i> Daftar
+                    </button>
+                </div>
+                
+                <!-- User Menu -->
+                <div id="user-menu" class="user-menu" style="display: none;">
+                    <button class="user-menu-toggle" onclick="app.toggleUserDropdown()">
+                        <div id="user-avatar" class="user-avatar">U</div>
+                        <span id="user-name">User</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="user-dropdown" class="user-dropdown">
+                        <a href="#" onclick="app.showView('profile')">
+                            <i class="fas fa-user"></i> Profil
+                        </a>
+                        <a href="#" onclick="app.showView('certificates')">
+                            <i class="fas fa-certificate"></i> Sertifikat Saya
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="app.handleSignOut()">
+                            <i class="fas fa-sign-out-alt"></i> Keluar
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -135,11 +204,8 @@
 
                     <div class="module-section">
                         <h3>🎥 Video Pembelajaran</h3>
-                        <div class="video-placeholder">
-                            <div class="video-icon">▶️</div>
-                            <p>Video pembelajaran untuk modul ini</p>
-                            <p class="video-note">Catatan: Embedded video akan tersedia di versi production</p>
-                        </div>
+                        <div id="video-container"></div>
+                        <div id="video-playlist"></div>
                     </div>
 
                     <div class="module-section">
@@ -173,6 +239,20 @@
         <div id="progress-view" class="view">
             <div class="view-header">
                 <h2>Progress &amp; Sertifikasi</h2>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="overall-progress">0%</span>
+                        <span class="stat-label">Progress Total</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="study-streak">0</span>
+                        <span class="stat-label">Hari Berturut-turut</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="study-time">0j</span>
+                        <span class="stat-label">Waktu Belajar</span>
+                    </div>
+                </div>
             </div>
 
             <div class="progress-summary">
@@ -242,6 +322,90 @@
                 <h3>📌 Rekomendasi Modul Berikutnya</h3>
                 <div id="recommendations" class="recommendations-list">
                     <p>Mulai pembelajaran untuk mendapatkan rekomendasi!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificates View -->
+        <div id="certificates-view" class="view">
+            <div class="view-header">
+                <h2>Sertifikat Saya</h2>
+                <button class="btn btn--primary" onclick="certificateManager.showAllCertificates()">
+                    <i class="fas fa-plus"></i> Lihat Semua Sertifikat
+                </button>
+            </div>
+
+            <div class="certificates-grid" id="certificates-grid">
+                <!-- Certificates will be dynamically loaded -->
+                <div class="empty-state">
+                    <i class="fas fa-certificate"></i>
+                    <h3>Belum Ada Sertifikat</h3>
+                    <p>Selesaikan semua modul dan quiz dalam satu level untuk mendapatkan sertifikat.</p>
+                    <button class="btn btn--primary" onclick="app.showView('dashboard')">
+                        Mulai Belajar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile View -->
+        <div id="profile-view" class="view">
+            <div class="view-header">
+                <h2>Profil Saya</h2>
+                <button class="btn btn--outline" onclick="authManager.showEditProfileModal()">
+                    <i class="fas fa-edit"></i> Edit Profil
+                </button>
+            </div>
+
+            <div class="profile-content">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h3 id="profile-full-name">Loading...</h3>
+                        <p id="profile-email">Loading...</p>
+                        <div class="profile-details">
+                            <div class="detail-item">
+                                <span class="detail-label">NIP:</span>
+                                <span id="profile-nip">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Jabatan:</span>
+                                <span id="profile-jabatan">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Unit Kerja:</span>
+                                <span id="profile-unit">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <h3>Statistik Pembelajaran</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-book"></i>
+                            <span id="profile-modules-completed">0</span>
+                            <p>Modul Selesai</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-trophy"></i>
+                            <span id="profile-certificates-earned">0</span>
+                            <p>Sertifikat Diperoleh</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <span id="profile-study-hours">0</span>
+                            <p>Jam Belajar</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-fire"></i>
+                            <span id="profile-current-streak">0</span>
+                            <p>Hari Beruntun</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -394,6 +558,82 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content auth-modal">
+            <div class="modal-header">
+                <div class="auth-tabs">
+                    <button id="auth-tab-login" class="auth-tab active" onclick="app.switchAuthTab('login')">Masuk</button>
+                    <button id="auth-tab-register" class="auth-tab" onclick="app.switchAuthTab('register')">Daftar</button>
+                </div>
+                <button class="modal-close" onclick="app.closeAuthModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Login Form -->
+                <div id="auth-login-content" class="auth-content active">
+                    <form id="login-form" onsubmit="app.handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-control" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary btn--full-width">
+                                <i class="fas fa-sign-in-alt"></i> Masuk
+                            </button>
+                            <button type="button" class="btn btn--outline btn--full-width" onclick="app.handleGoogleSignIn()">
+                                <i class="fab fa-google"></i> Masuk dengan Google
+                            </button>
+                        </div>
+                        <div class="auth-links">
+                            <button type="button" class="btn-link" onclick="app.useDemoAccount()">
+                                <i class="fas fa-user"></i> Gunakan Akun Demo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Register Form -->
+                <div id="auth-register-content" class="auth-content">
+                    <form id="register-form" onsubmit="app.handleRegister(event)">
+                        <div class="form-group">
+                            <label for="register-email">Email *</label>
+                            <input type="email" id="register-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password *</label>
+                            <input type="password" id="register-password" class="form-control" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-fullname">Nama Lengkap *</label>
+                            <input type="text" id="register-fullname" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-nip">NIP</label>
+                            <input type="text" id="register-nip" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-jabatan">Jabatan</label>
+                            <input type="text" id="register-jabatan" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-unit">Unit Kerja</label>
+                            <input type="text" id="register-unit" class="form-control">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary btn--full-width">
+                                <i class="fas fa-user-plus"></i> Daftar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Certificate Modal -->
     <div id="certificate-modal" class="modal">
         <div class="modal-content certificate-content">
@@ -413,6 +653,53 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Memuat...</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="config/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/progress.js"></script>
+    <script src="js/certificate.js"></script>
+    <script src="js/video.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Initialize all managers
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Show loading
+                document.getElementById('loading-overlay').style.display = 'flex';
+                
+                // Initialize managers
+                await authManager.initialize();
+                await progressManager.initialize();
+                await certificateManager.initialize();
+                
+                // Initialize app
+                if (window.app) {
+                    window.app.init();
+                }
+                
+                // Hide loading
+                document.getElementById('loading-overlay').style.display = 'none';
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('loading-overlay').style.display = 'none';
+                
+                // Show error notification
+                if (window.authManager) {
+                    window.authManager.showNotification('Terjadi kesalahan saat memuat aplikasi', 'error');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

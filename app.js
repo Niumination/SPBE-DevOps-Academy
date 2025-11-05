@@ -9,14 +9,34 @@ const curricula = {
         name: "Basic (Operator)",
         duration: "2-3 bulan",
         modules: [
-          {
-            id: "dp-b-1",
-            title: "Linux CLI Dasar",
-            description: "Perintah CLI dasar, manajemen file, dan permission",
-            tools: ["Ubuntu Server 22.04 LTS", "SSH Client (PuTTY/MobaXterm)", "htop", "systemctl"],
-            project: "Setup lab virtual dengan 3 VM untuk sandbox pengembangan aplikasi SPBE",
-            duration: "4 jam",
-            quiz: [
+           {
+             id: "dp-b-1",
+             title: "Linux CLI Dasar",
+             description: "Perintah CLI dasar, manajemen file, dan permission",
+             tools: ["Ubuntu Server 22.04 LTS", "SSH Client (PuTTY/MobaXterm)", "htop", "systemctl"],
+             project: "Setup lab virtual dengan 3 VM untuk sandbox pengembangan aplikasi SPBE",
+             duration: "4 jam",
+             videos: [
+               {
+                 title: "Pengenalan Linux Command Line",
+                 description: "Video pembelajaran dasar-dasar perintah Linux",
+                 type: "youtube",
+                 url: "https://www.youtube.com/watch?v=yz7nDlnXW8c",
+                 duration: "15:24",
+                 durationSeconds: 924,
+                 thumbnail: "https://img.youtube.com/vi/yz7nDlnXW8c/hqdefault.jpg"
+               },
+               {
+                 title: "File Management dan Permissions",
+                 description: "Cara mengelola file dan permission di Linux",
+                 type: "youtube", 
+                 url: "https://www.youtube.com/watch?v=Qh_JYD8V7Jk",
+                 duration: "12:15",
+                 durationSeconds: 735,
+                 thumbnail: "https://img.youtube.com/vi/Qh_JYD8V7Jk/hqdefault.jpg"
+               }
+             ],
+             quiz: [
               {
                 question: "Perintah mana yang digunakan untuk melihat permission file di Linux?",
                 options: ["ls -la", "cat", "pwd", "mkdir"],
@@ -400,9 +420,245 @@ const state = {
 
 // Application Object
 const app = {
-  init() {
-    this.showView('dashboard');
-    this.updateStats();
+  currentUser: null,
+  isInitialized: false,
+
+  async init() {
+    try {
+      // Wait for all managers to be initialized
+      await this.waitForManagers();
+      
+      // Set up auth state listener
+      if (window.authManager) {
+        window.authManager.onAuthStateChanged((event, user) => {
+          this.handleAuthChange(event, user);
+        });
+      }
+      
+      // Show initial view
+      this.showView('dashboard');
+      await this.updateStats();
+      
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('App initialization error:', error);
+      this.showNotification('Gagal memuat aplikasi', 'error');
+    }
+  },
+
+  async waitForManagers() {
+    const maxWait = 5000; // 5 seconds max wait
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < maxWait) {
+      if (window.authManager?.isInitialized && 
+          window.progressManager?.isInitialized && 
+          window.certificateManager?.isInitialized) {
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  },
+
+  handleAuthChange(event, user) {
+    this.currentUser = user;
+    
+    // Update UI based on auth state
+    if (event === 'SIGNED_IN') {
+      this.onUserSignedIn(user);
+    } else if (event === 'SIGNED_OUT') {
+      this.onUserSignedOut();
+    }
+  },
+
+  async onUserSignedIn(user) {
+    try {
+      // Load user-specific data
+      await this.loadUserData();
+      
+      // Update UI
+      this.updateAuthUI(true);
+      
+      // Show welcome message
+      this.showNotification(`Selamat datang kembali, ${user.user_metadata?.full_name || user.email?.split('@')[0]}!`, 'success');
+    } catch (error) {
+      console.error('Error handling sign in:', error);
+    }
+  },
+
+  async onUserSignedOut() {
+    try {
+      // Clear user data
+      this.clearUserData();
+      
+      // Update UI
+      this.updateAuthUI(false);
+      
+      // Redirect to dashboard
+      this.showView('dashboard');
+      
+      // Show message
+      this.showNotification('Anda telah keluar dari akun', 'info');
+    } catch (error) {
+      console.error('Error handling sign out:', error);
+    }
+  },
+
+  async loadUserData() {
+    try {
+      // Load user progress from backend
+      if (window.progressManager) {
+        await window.progressManager.refreshProgress();
+        const progress = await window.progressManager.getUserProgress();
+        if (progress.success) {
+          // Update local state with backend data
+          state.completedModules = progress.data.completedModules || [];
+          state.quizResults = progress.data.quizResults || {};
+          state.earnedBadges = progress.data.earnedBadges || [];
+        }
+      }
+      
+      // Load user certificates
+      if (window.certificateManager) {
+        const certificates = await window.certificateManager.getUserCertificates();
+        if (certificates.success) {
+          this.userCertificates = certificates.data;
+        }
+      }
+      
+      // Load user profile
+      if (window.authManager) {
+        this.userProfile = await window.authManager.getUserProfile();
+      }
+      
+      // Update UI with loaded data
+      this.updateStats();
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  },
+
+  clearUserData() {
+    this.userCertificates = [];
+    this.userProfile = null;
+    
+    // Clear caches
+    if (window.progressManager) {
+      window.progressManager.clearCache();
+    }
+  },
+
+  updateAuthUI(isAuthenticated) {
+    // Update navigation
+    const authButtons = document.getElementById('auth-buttons');
+    const userMenu = document.getElementById('user-menu');
+    
+    if (authButtons && userMenu) {
+      if (isAuthenticated) {
+        authButtons.style.display = 'none';
+        userMenu.style.display = 'block';
+        
+        // Update user menu content
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        if (userName && this.currentUser) {
+          userName.textContent = this.currentUser.user_metadata?.full_name || this.currentUser.email?.split('@')[0] || 'User';
+        }
+        if (userAvatar && this.currentUser) {
+          userAvatar.textContent = (this.currentUser.user_metadata?.full_name || this.currentUser.email || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        authButtons.style.display = 'flex';
+        userMenu.style.display = 'none';
+      }
+    }
+    
+    // Update profile view if visible
+    if (document.getElementById('profile-view')?.classList.contains('active')) {
+      this.updateProfileView();
+    }
+  },
+
+  updateProfileView() {
+    if (!this.currentUser || !this.userProfile) return;
+
+    const profileName = document.getElementById('profile-name');
+    const profileEmail = document.getElementById('profile-email');
+    const profileNIP = document.getElementById('profile-nip');
+    const profileJabatan = document.getElementById('profile-jabatan');
+    const profileUnit = document.getElementById('profile-unit');
+
+    if (profileName) profileName.textContent = this.currentUser.user_metadata?.full_name || 'N/A';
+    if (profileEmail) profileEmail.textContent = this.currentUser.email || 'N/A';
+    if (profileNIP) profileNIP.textContent = this.userProfile.nip || 'N/A';
+    if (profileJabatan) profileJabatan.textContent = this.userProfile.jabatan || 'N/A';
+    if (profileUnit) profileUnit.textContent = this.userProfile.unit_kerja || 'N/A';
+
+    // Update certificates in profile
+    this.updateProfileCertificates();
+  },
+
+  updateProfileCertificates() {
+    const certificatesContainer = document.getElementById('profile-certificates');
+    if (!certificatesContainer || !this.userCertificates) return;
+
+    certificatesContainer.innerHTML = '';
+
+    if (this.userCertificates.length === 0) {
+      certificatesContainer.innerHTML = '<p>Belum ada sertifikat yang diperoleh.</p>';
+      return;
+    }
+
+    this.userCertificates.forEach(certificate => {
+      const certElement = document.createElement('div');
+      certElement.className = 'certificate-item';
+      certElement.innerHTML = `
+        <div class="certificate-info">
+          <h4>${certificate.course_name}</h4>
+          <p>Diterbitkan: ${new Date(certificate.issued_at).toLocaleDateString('id-ID')}</p>
+          ${certificate.verification_code ? `<p>Kode: ${certificate.verification_code}</p>` : ''}
+        </div>
+        <button class="btn btn--secondary" onclick="app.downloadCertificate('${certificate.id}')">
+          Download
+        </button>
+      `;
+      certificatesContainer.appendChild(certElement);
+    });
+  },
+
+  async downloadCertificate(certificateId) {
+    try {
+      if (window.certificateManager) {
+        const result = await window.certificateManager.downloadCertificate(certificateId);
+        if (result.success) {
+          this.showNotification('Sertifikat berhasil diunduh', 'success');
+        } else {
+          this.showNotification('Gagal mengunduh sertifikat', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      this.showNotification('Terjadi kesalahan saat mengunduh sertifikat', 'error');
+    }
+  },
+
+  showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification--${type}`;
+    notification.textContent = message;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 5000);
   },
 
   showView(viewName) {
@@ -495,6 +751,9 @@ const app = {
     document.getElementById('module-description').textContent = module.description;
     document.getElementById('module-project').textContent = module.project;
 
+    // Render video content if available
+    this.renderModuleVideo(module);
+
     // Render tools
     const toolsList = document.getElementById('module-tools');
     toolsList.innerHTML = '';
@@ -509,6 +768,36 @@ const app = {
     const isCompleted = state.completedModules.includes(module.id);
     const progressFill = document.getElementById('module-progress-fill');
     progressFill.style.width = isCompleted ? '100%' : '50%';
+  },
+
+  renderModuleVideo(module) {
+    const videoContainer = document.getElementById('video-container');
+    const playlistContainer = document.getElementById('video-playlist');
+    
+    if (!module.videos || module.videos.length === 0) {
+      // Hide video containers if no videos
+      if (videoContainer) videoContainer.style.display = 'none';
+      if (playlistContainer) playlistContainer.style.display = 'none';
+      return;
+    }
+
+    // Show video containers
+    if (videoContainer) videoContainer.style.display = 'block';
+    if (playlistContainer) playlistContainer.style.display = 'block';
+
+    // Load video module
+    if (window.videoManager) {
+      const moduleData = {
+        moduleId: module.id,
+        videos: module.videos
+      };
+      
+      // Dispatch event to load video module
+      const event = new CustomEvent('videomodule:load', {
+        detail: moduleData
+      });
+      document.dispatchEvent(event);
+    }
   },
 
   startQuiz() {
@@ -594,17 +883,31 @@ const app = {
       });
 
       const score = Math.round((correct / module.quiz.length) * 100);
-      state.quizResults[module.id] = score;
+      
+      try {
+        // Save quiz result to backend
+        if (window.progressManager) {
+          const result = await window.progressManager.saveQuizResult(module.id, score, correct, module.quiz.length);
+          if (!result.success) {
+            console.error('Failed to save quiz result:', result.error);
+          }
+        }
 
-      // Show result
-      quizContent.style.display = 'none';
-      quizResult.classList.remove('hidden');
-      document.getElementById('result-title').textContent = score >= 70 ? '🎉 Selamat!' : '📚 Perlu Belajar Lagi';
-      document.getElementById('result-message').textContent = score >= 70 ? 'Anda telah lulus quiz ini!' : 'Silakan pelajari kembali materi ini.';
-      document.getElementById('result-score').textContent = `Skor: ${correct}/${module.quiz.length} (${score}%)`;
+        // Update local state
+        state.quizResults[module.id] = score;
 
-      this.addActivity(`Menyelesaikan quiz: ${module.title} (Skor: ${score}%)`);
-      this.updateStats();
+        // Show result
+        quizContent.style.display = 'none';
+        quizResult.classList.remove('hidden');
+        document.getElementById('result-title').textContent = score >= 70 ? '🎉 Selamat!' : '📚 Perlu Belajar Lagi';
+        document.getElementById('result-message').textContent = score >= 70 ? 'Anda telah lulus quiz ini!' : 'Silakan pelajari kembali materi ini.';
+        document.getElementById('result-score').textContent = `Skor: ${correct}/${module.quiz.length} (${score}%)`;
+
+        this.addActivity(`Menyelesaikan quiz: ${module.title} (Skor: ${score}%)`);
+        this.updateStats();
+      } catch (error) {
+        console.error('Error saving quiz result:', error);
+      }
 
       submitBtn.style.display = 'none';
     };
@@ -617,27 +920,42 @@ const app = {
     document.getElementById('quiz-modal').classList.remove('active');
   },
 
-  markModuleComplete() {
+  async markModuleComplete() {
     if (!state.currentModule) return;
 
     const moduleId = state.currentModule.moduleId;
     if (!state.completedModules.includes(moduleId)) {
-      state.completedModules.push(moduleId);
-      this.addActivity(`Menyelesaikan modul: ${state.currentModule.data.title}`);
-      this.updateStats();
+      try {
+        // Save to backend
+        if (window.progressManager) {
+          const result = await window.progressManager.markModuleComplete(moduleId);
+          if (!result.success) {
+            this.showNotification('Gagal menyimpan progress', 'error');
+            return;
+          }
+        }
 
-      // Check for badges
-      this.checkBadges();
+        // Update local state
+        state.completedModules.push(moduleId);
+        this.addActivity(`Menyelesaikan modul: ${state.currentModule.data.title}`);
+        this.updateStats();
 
-      // Update progress bar
-      const progressFill = document.getElementById('module-progress-fill');
-      progressFill.style.width = '100%';
+        // Check for badges
+        await this.checkBadges();
 
-      alert('✅ Modul berhasil ditandai selesai!');
+        // Update progress bar
+        const progressFill = document.getElementById('module-progress-fill');
+        progressFill.style.width = '100%';
+
+        this.showNotification('✅ Modul berhasil ditandai selesai!', 'success');
+      } catch (error) {
+        console.error('Error marking module complete:', error);
+        this.showNotification('Gagal menyelesaikan modul', 'error');
+      }
     }
   },
 
-  checkBadges() {
+  async checkBadges() {
     const devopsBasicModules = curricula.devops.levels.basic.modules.map(m => m.id);
     const devopsIntermediateModules = curricula.devops.levels.intermediate.modules.map(m => m.id);
     const devopsAdvancedModules = curricula.devops.levels.advanced.modules.map(m => m.id);
@@ -645,40 +963,100 @@ const app = {
     const spbeIntermediateModules = curricula.spbe.levels.intermediate.modules.map(m => m.id);
     const spbeAdvancedModules = curricula.spbe.levels.advanced.modules.map(m => m.id);
 
+    const newBadges = [];
+
     // Check DevOps badges
     if (devopsBasicModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('devops_basic')) {
       state.earnedBadges.push('devops_basic');
-      this.showCertificate('DevOps Engineer - Basic (Operator)', 'devops_basic');
+      newBadges.push({ key: 'devops_basic', name: 'DevOps Engineer - Basic (Operator)' });
     }
     if (devopsIntermediateModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('devops_intermediate')) {
       state.earnedBadges.push('devops_intermediate');
-      this.showCertificate('DevOps Engineer - Intermediate (Implementor)', 'devops_intermediate');
+      newBadges.push({ key: 'devops_intermediate', name: 'DevOps Engineer - Intermediate (Implementor)' });
     }
     if (devopsAdvancedModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('devops_advanced')) {
       state.earnedBadges.push('devops_advanced');
-      this.showCertificate('DevOps Engineer - Advanced/Professional', 'devops_advanced');
+      newBadges.push({ key: 'devops_advanced', name: 'DevOps Engineer - Advanced/Professional' });
     }
 
     // Check SPBE badges
     if (spbeBasicModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('spbe_basic')) {
       state.earnedBadges.push('spbe_basic');
-      this.showCertificate('Penggiat SPBE - Basic (Familiarization)', 'spbe_basic');
+      newBadges.push({ key: 'spbe_basic', name: 'Penggiat SPBE - Basic (Familiarization)' });
     }
     if (spbeIntermediateModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('spbe_intermediate')) {
       state.earnedBadges.push('spbe_intermediate');
-      this.showCertificate('Penggiat SPBE - Intermediate (Audit & Mapping)', 'spbe_intermediate');
+      newBadges.push({ key: 'spbe_intermediate', name: 'Penggiat SPBE - Intermediate (Audit & Mapping)' });
     }
     if (spbeAdvancedModules.every(id => state.completedModules.includes(id)) && !state.earnedBadges.includes('spbe_advanced')) {
       state.earnedBadges.push('spbe_advanced');
-      this.showCertificate('Penggiat SPBE - Advanced/Professional', 'spbe_advanced');
+      newBadges.push({ key: 'spbe_advanced', name: 'Penggiat SPBE - Advanced/Professional' });
+    }
+
+    // Save new badges to backend and generate certificates
+    for (const badge of newBadges) {
+      try {
+        // Save badge to backend
+        if (window.progressManager) {
+          await window.progressManager.awardBadge(badge.key);
+        }
+
+        // Generate certificate
+        if (window.certificateManager) {
+          const certificate = await window.certificateManager.generateCertificate(
+            badge.name,
+            badge.key,
+            this.currentUser?.user_metadata?.full_name || this.currentUser?.email || 'User'
+          );
+          
+          if (certificate.success) {
+            this.showNotification(`🎉 Selamat! Anda mendapatkan sertifikat: ${badge.name}`, 'success');
+          }
+        }
+      } catch (error) {
+        console.error('Error processing badge:', error);
+      }
     }
   },
 
-  showCertificate(levelName, badgeKey) {
+  async showCertificate(levelName, badgeKey) {
+    try {
+      // Try to get certificate from backend
+      if (window.certificateManager && this.userCertificates) {
+        const certificate = this.userCertificates.find(cert => cert.badge_key === badgeKey);
+        if (certificate) {
+          // Show certificate details from backend
+          this.showCertificateModal(certificate);
+          return;
+        }
+      }
+
+      // Fallback to simple modal
+      const modal = document.getElementById('certificate-modal');
+      document.getElementById('certificate-level').textContent = levelName;
+      document.getElementById('certificate-badge').textContent = badges[badgeKey].icon;
+      document.getElementById('certificate-date').textContent = `Tanggal: ${new Date().toLocaleDateString('id-ID')}`;
+      modal.classList.add('active');
+    } catch (error) {
+      console.error('Error showing certificate:', error);
+    }
+  },
+
+  showCertificateModal(certificate) {
     const modal = document.getElementById('certificate-modal');
-    document.getElementById('certificate-level').textContent = levelName;
-    document.getElementById('certificate-badge').textContent = badges[badgeKey].icon;
-    document.getElementById('certificate-date').textContent = `Tanggal: ${new Date().toLocaleDateString('id-ID')}`;
+    document.getElementById('certificate-level').textContent = certificate.course_name;
+    document.getElementById('certificate-badge').textContent = badges[certificate.badge_key]?.icon || '🏆';
+    document.getElementById('certificate-date').textContent = `Tanggal: ${new Date(certificate.issued_at).toLocaleDateString('id-ID')}`;
+    
+    // Add verification code if available
+    if (certificate.verification_code) {
+      const verificationElement = document.getElementById('certificate-verification');
+      if (verificationElement) {
+        verificationElement.textContent = `Kode Verifikasi: ${certificate.verification_code}`;
+        verificationElement.style.display = 'block';
+      }
+    }
+    
     modal.classList.add('active');
   },
 
@@ -850,6 +1228,171 @@ const app = {
       `;
       recommendationsDiv.appendChild(recItem);
     });
+  },
+
+  // Authentication UI methods
+  showLoginModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.getElementById('auth-tab-login').click();
+    }
+  },
+
+  showRegisterModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.getElementById('auth-tab-register').click();
+    }
+  },
+
+  closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  },
+
+  async handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+      this.showNotification('Mohon isi email dan password', 'error');
+      return;
+    }
+
+    try {
+      if (window.authManager) {
+        const result = await window.authManager.signIn(email, password);
+        if (result.success) {
+          this.closeAuthModal();
+          this.showNotification('Login berhasil!', 'success');
+        } else {
+          this.showNotification(result.error || 'Login gagal', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      this.showNotification('Terjadi kesalahan saat login', 'error');
+    }
+  },
+
+  async handleRegister(event) {
+    event.preventDefault();
+    
+    const formData = {
+      email: document.getElementById('register-email').value,
+      password: document.getElementById('register-password').value,
+      fullName: document.getElementById('register-fullname').value,
+      nip: document.getElementById('register-nip').value,
+      jabatan: document.getElementById('register-jabatan').value,
+      unitKerja: document.getElementById('register-unit').value
+    };
+
+    // Validation
+    if (!formData.email || !formData.password || !formData.fullName) {
+      this.showNotification('Mohon isi field yang wajib diisi', 'error');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      this.showNotification('Password minimal 6 karakter', 'error');
+      return;
+    }
+
+    try {
+      if (window.authManager) {
+        const result = await window.authManager.signUp(formData);
+        if (result.success) {
+          this.closeAuthModal();
+          this.showNotification('Registrasi berhasil! Silakan cek email untuk verifikasi.', 'success');
+        } else {
+          this.showNotification(result.error || 'Registrasi gagal', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      this.showNotification('Terjadi kesalahan saat registrasi', 'error');
+    }
+  },
+
+  async handleGoogleSignIn() {
+    try {
+      if (window.authManager) {
+        const result = await window.authManager.signInWithGoogle();
+        if (result.success) {
+          this.closeAuthModal();
+          this.showNotification('Login dengan Google berhasil!', 'success');
+        } else {
+          this.showNotification(result.error || 'Login Google gagal', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      this.showNotification('Terjadi kesalahan saat login dengan Google', 'error');
+    }
+  },
+
+  async handleSignOut() {
+    try {
+      if (window.authManager) {
+        const result = await window.authManager.signOut();
+        if (result.success) {
+          this.showNotification('Anda telah keluar dari akun', 'info');
+        } else {
+          this.showNotification(result.error || 'Logout gagal', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+      this.showNotification('Terjadi kesalahan saat logout', 'error');
+    }
+  },
+
+  // Demo account login
+  async useDemoAccount() {
+    try {
+      if (window.authManager) {
+        const result = await window.authManager.useDemoAccount();
+        if (result.success) {
+          this.closeAuthModal();
+          this.showNotification('Login dengan akun demo berhasil!', 'success');
+        } else {
+          this.showNotification(result.error || 'Login demo gagal', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Demo login error:', error);
+      this.showNotification('Terjadi kesalahan saat login demo', 'error');
+    }
+  },
+
+  toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+    }
+  },
+
+  switchAuthTab(tab) {
+    // Update tab buttons
+    const loginTab = document.getElementById('auth-tab-login');
+    const registerTab = document.getElementById('auth-tab-register');
+    
+    if (tab === 'login') {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      document.getElementById('auth-login-content').classList.add('active');
+      document.getElementById('auth-register-content').classList.remove('active');
+    } else {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      document.getElementById('auth-register-content').classList.add('active');
+      document.getElementById('auth-login-content').classList.remove('active');
+    }
   }
 };
 
