@@ -140,7 +140,7 @@ class AuthManager {
         return this.fallbackSignIn(email, password);
       }
 
-      const { data, error } = await this.supabase.auth.signIn({
+      const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
         password
       });
