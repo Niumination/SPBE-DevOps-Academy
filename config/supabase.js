@@ -26,13 +26,13 @@ function initializeSupabase() {
       });
       
       // Try different ways to access Supabase client
-      if (typeof window.Supabase !== 'undefined' && window.Supabase.createClient) {
-        supabase = window.Supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-        console.log('✅ Supabase client created using window.Supabase.createClient');
-      } else if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
         supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         console.log('✅ Supabase client created using window.supabase.createClient');
-      } else if (typeof window.createClient !== 'undefined') {
+      } else if (typeof window.Supabase !== 'undefined' && typeof window.Supabase.createClient === 'function') {
+        supabase = window.Supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        console.log('✅ Supabase client created using window.Supabase.createClient');
+      } else if (typeof window.createClient === 'function') {
         supabase = window.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         console.log('✅ Supabase client created using window.createClient');
       } else {
@@ -45,30 +45,6 @@ function initializeSupabase() {
     }
   } else {
     console.warn('❌ Not in browser environment');
-    return null;
-  }
-
-  return supabase;
-}
-
-  // Check if we're in a browser environment and Supabase is loaded
-  if (typeof window !== 'undefined') {
-    try {
-      // Try to create client using the global Supabase object from CDN
-      if (window.supabase && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-      } else if (typeof window.createClient !== 'undefined') {
-        supabase = window.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-      } else {
-        console.error('Supabase client not available. Check if Supabase CDN is loaded correctly.');
-        return null;
-      }
-    } catch (error) {
-      console.error('Error initializing Supabase client:', error);
-      return null;
-    }
-  } else {
-    console.warn('Not in browser environment');
     return null;
   }
 
