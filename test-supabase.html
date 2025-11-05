@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Test</title>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="result"></div>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Test Supabase configuration
+        const SUPABASE_CONFIG = {
+            url: 'https://drilnozmqsrfcshrdyuf.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyaWxub3ptcXNyZmNzaHJkeXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzMzczOTgsImV4cCI6MjA3NzkxMzM5OH0.6dtAp4u1rlPGnqU4zrSaLtPufPfmYDzXu4jf2s-ZmM8'
+        };
+        
+        const result = document.getElementById('result');
+        
+        // Check if Supabase is loaded
+        if (typeof window.supabase !== 'undefined') {
+            result.innerHTML += '<p>✅ Supabase CDN loaded successfully</p>';
+            
+            try {
+                // Try to create client
+                const client = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                result.innerHTML += '<p>✅ Supabase client created successfully</p>';
+                
+                // Test connection
+                client.auth.getSession().then(({ data, error }) => {
+                    if (error) {
+                        result.innerHTML += `<p>❌ Connection test failed: ${error.message}</p>`;
+                    } else {
+                        result.innerHTML += '<p>✅ Supabase connection test passed</p>';
+                    }
+                });
+                
+            } catch (error) {
+                result.innerHTML += `<p>❌ Error creating client: ${error.message}</p>`;
+            }
+        } else {
+            result.innerHTML += '<p>❌ Supabase CDN not loaded</p>';
+        }
+    </script>
+</body>
+</html>

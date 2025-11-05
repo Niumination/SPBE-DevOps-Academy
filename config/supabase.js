@@ -1,8 +1,8 @@
 // Supabase Configuration
 const SUPABASE_CONFIG = {
-  url: import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co',
-  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key',
-  serviceRoleKey: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key',
+  url: 'https://drilnozmqsrfcshrdyuf.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyaWxub3ptcXNyZmNzaHJkeXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzMzczOTgsImV4cCI6MjA3NzkxMzM5OH0.6dtAp4u1rlPGnqU4zrSaLtPufPfmYDzXu4jf2s-ZmM8',
+  serviceRoleKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyaWxub3ptcXNyZmNzaHJkeXVmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjMzNzM5OCwiZXhwIjoyMDc3OTEzMzk4fQ.MwDqlrpzx6hYjoCXkx1sPtCgRsOtmIPH9RTZFqyTi14',
   // For development, you can use these placeholder values
   // In production, these should be set as environment variables
 };
@@ -16,12 +16,59 @@ function initializeSupabase() {
   }
 
   // Check if we're in a browser environment
-  if (typeof window !== 'undefined' && window.supabase) {
-    supabase = window.supabase;
-  } else if (typeof createClient !== 'undefined') {
-    supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+  if (typeof window !== 'undefined') {
+    try {
+      // Debug: Log available global objects
+      console.log('Available Supabase objects:', {
+        'window.supabase': typeof window.supabase,
+        'window.Supabase': typeof window.Supabase,
+        'window.createClient': typeof window.createClient
+      });
+      
+      // Try different ways to access Supabase client
+      if (typeof window.Supabase !== 'undefined' && window.Supabase.createClient) {
+        supabase = window.Supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        console.log('✅ Supabase client created using window.Supabase.createClient');
+      } else if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        console.log('✅ Supabase client created using window.supabase.createClient');
+      } else if (typeof window.createClient !== 'undefined') {
+        supabase = window.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        console.log('✅ Supabase client created using window.createClient');
+      } else {
+        console.error('❌ Supabase client not available. Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error initializing Supabase client:', error);
+      return null;
+    }
   } else {
-    console.warn('Supabase client not available. Using fallback storage.');
+    console.warn('❌ Not in browser environment');
+    return null;
+  }
+
+  return supabase;
+}
+
+  // Check if we're in a browser environment and Supabase is loaded
+  if (typeof window !== 'undefined') {
+    try {
+      // Try to create client using the global Supabase object from CDN
+      if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+      } else if (typeof window.createClient !== 'undefined') {
+        supabase = window.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+      } else {
+        console.error('Supabase client not available. Check if Supabase CDN is loaded correctly.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error initializing Supabase client:', error);
+      return null;
+    }
+  } else {
+    console.warn('Not in browser environment');
     return null;
   }
 
