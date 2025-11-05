@@ -365,6 +365,78 @@ class AuthManager {
     });
   }
 
+  showEditProfileModal() {
+    if (!this.currentUser || !this.userProfile) {
+      this.showNotification('Data profil belum dimuat. Silakan coba lagi.', 'error');
+      return;
+    }
+
+    // Create modal HTML
+    const modalHTML = `
+      <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Edit Profil</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <form id="edit-profile-form" class="modal-body">
+            <div class="form-group">
+              <label for="edit-fullname">Nama Lengkap</label>
+              <input type="text" id="edit-fullname" value="${this.currentUser.user_metadata?.full_name || this.userProfile?.full_name || ''}" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-nip">NIP</label>
+              <input type="text" id="edit-nip" value="${this.userProfile?.nip || ''}">
+            </div>
+            <div class="form-group">
+              <label for="edit-jabatan">Jabatan</label>
+              <input type="text" id="edit-jabatan" value="${this.userProfile?.jabatan || ''}">
+            </div>
+            <div class="form-group">
+              <label for="edit-unit">Unit Kerja</label>
+              <input type="text" id="edit-unit" value="${this.userProfile?.unit_kerja || ''}">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn--outline" onclick="this.closest('.modal').remove()">Batal</button>
+              <button type="submit" class="btn btn--primary">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Handle form submission
+    const form = document.getElementById('edit-profile-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        fullName: document.getElementById('edit-fullname').value,
+        nip: document.getElementById('edit-nip').value,
+        jabatan: document.getElementById('edit-jabatan').value,
+        unitKerja: document.getElementById('edit-unit').value
+      };
+
+      const result = await this.updateProfile(formData);
+      if (result.success) {
+        this.showNotification('Profil berhasil diperbarui!', 'success');
+        document.getElementById('edit-profile-modal').remove();
+        // Reload user data
+        if (window.app) {
+          await window.app.loadUserData();
+          window.app.updateProfileView();
+        }
+      } else {
+        this.showNotification(result.error || 'Gagal memperbarui profil', 'error');
+      }
+    });
+  }
+
   // UI methods
   updateAuthUI(isAuthenticated) {
     // Update navigation

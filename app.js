@@ -580,7 +580,13 @@ const app = {
   },
 
   updateProfileView() {
-    if (!this.currentUser || !this.userProfile) return;
+    if (!this.currentUser) return;
+    
+    // Try to load profile if not available
+    if (!this.userProfile) {
+      this.loadUserData();
+      return;
+    }
 
     const profileName = document.getElementById('profile-full-name');
     const profileEmail = document.getElementById('profile-email');
