@@ -800,7 +800,7 @@ const app = {
     }
   },
 
-  startQuiz() {
+  async startQuiz() {
     if (!state.currentModule) return;
 
     const module = state.currentModule.data;
@@ -858,7 +858,7 @@ const app = {
     submitBtn.className = 'btn btn--primary btn--full-width';
     submitBtn.textContent = 'Submit Jawaban';
     submitBtn.style.marginTop = '24px';
-    submitBtn.onclick = () => {
+    submitBtn.onclick = async () => {
       if (quizState.answers.length < module.quiz.length) {
         alert('Mohon jawab semua pertanyaan!');
         return;
@@ -905,11 +905,11 @@ const app = {
 
         this.addActivity(`Menyelesaikan quiz: ${module.title} (Skor: ${score}%)`);
         this.updateStats();
+
+        submitBtn.style.display = 'none';
       } catch (error) {
         console.error('Error saving quiz result:', error);
       }
-
-      submitBtn.style.display = 'none';
     };
     quizContent.appendChild(submitBtn);
 
@@ -1395,6 +1395,9 @@ const app = {
     }
   }
 };
+
+// Make app globally available
+window.app = app;
 
 // Initialize app when DOM is loaded
 if (document.readyState === 'loading') {

@@ -1,7 +1,8 @@
 // Supabase Configuration
 const SUPABASE_CONFIG = {
-  url: process.env.SUPABASE_URL || 'https://your-project.supabase.co',
-  anonKey: process.env.SUPABASE_ANON_KEY || 'your-anon-key',
+  url: import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co',
+  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key',
+  serviceRoleKey: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key',
   // For development, you can use these placeholder values
   // In production, these should be set as environment variables
 };

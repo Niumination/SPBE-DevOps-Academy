@@ -487,7 +487,7 @@ class VideoManager {
   }
 
   extractVimeoId(url) {
-    const regex = /vimeo\.com\/(?:.*#|.*/videos/)?([0-9]+)/;
+    const regex = /vimeo\.com\/(?:.*#|.*\/videos\/)?([0-9]+)/;
     const match = url.match(regex);
     return match ? match[1] : '';
   }
